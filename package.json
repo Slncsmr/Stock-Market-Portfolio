@@ -1,24 +1,34 @@
 {
-  "dependencies": {
-    "express": "^4.21.2"
-  },
   "name": "stock-market-portfolio",
   "version": "1.0.0",
-  "description": "",
+  "description": "Indian Stock Market (BSE) Portfolio Tracker",
   "main": "index.js",
-  "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm start\"",
+    "install-deps": "npm install && cd frontend && npm install && cd ../backend && npm install"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Slncsmr/Stock-Market-Portfolio.git"
   },
-  "keywords": [],
+  "keywords": [
+    "stock",
+    "portfolio",
+    "BSE",
+    "tracker"
+  ],
   "author": "",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/Slncsmr/Stock-Market-Portfolio/issues"
   },
-  "homepage": "https://github.com/Slncsmr/Stock-Market-Portfolio#readme"
+  "homepage": "https://github.com/Slncsmr/Stock-Market-Portfolio#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mongoose": "^8.13.2",
+    "concurrently": "^8.0.1"
+  }
 }
