@@ -19,6 +19,7 @@
     "express": "^4.18.2",
     "express-validator": "^7.0.1",
     "mongoose": "^7.0.3",
+    "ws": "^8.18.1",
     "yahoo-finance2": "^2.13.3"
   },
   "devDependencies": {

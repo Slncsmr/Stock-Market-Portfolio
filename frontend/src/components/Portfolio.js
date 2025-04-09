@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import webSocketService from '../services/websocket';
 
 const Portfolio = () => {
   const [portfolio, setPortfolio] = useState([]);
@@ -11,12 +12,64 @@ const Portfolio = () => {
 
   useEffect(() => {
     fetchPortfolio();
+    
+    // Connect to WebSocket and subscribe to updates
+    webSocketService.connect();
+    const unsubscribe = webSocketService.subscribe((stockData) => {
+      setPortfolio(prevPortfolio => {
+        return prevPortfolio.map(item => {
+          if (item.symbol === stockData.symbol) {
+            const currentValue = item.quantity * stockData.currentPrice;
+            const investment = item.quantity * item.averageBuyPrice;
+            const profitLoss = currentValue - investment;
+            return {
+              ...item,
+              currentPrice: stockData.currentPrice,
+              currentValue,
+              profitLoss,
+              profitLossPercentage: (profitLoss / investment) * 100
+            };
+          }
+          return item;
+        });
+      });
+    });
+
+    return () => {
+      // Cleanup subscription when component unmounts
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, []);
 
   const fetchPortfolio = async () => {
     try {
       const response = await axios.get('http://localhost:5001/api/portfolio');
-      setPortfolio(response.data);
+      // Add current price and calculations to each portfolio item
+      const portfolioWithPrices = await Promise.all(
+        response.data.map(async (item) => {
+          try {
+            const stockResponse = await axios.get(`http://localhost:5001/api/stocks/${item.symbol}`);
+            const currentPrice = stockResponse.data.currentPrice;
+            const currentValue = item.quantity * currentPrice;
+            const investment = item.quantity * item.averageBuyPrice;
+            const profitLoss = currentValue - investment;
+            
+            return {
+              ...item,
+              currentPrice,
+              currentValue,
+              profitLoss,
+              profitLossPercentage: (profitLoss / investment) * 100
+            };
+          } catch (error) {
+            console.error(`Error fetching price for ${item.symbol}:`, error);
+            return item;
+          }
+        })
+      );
+      setPortfolio(portfolioWithPrices);
     } catch (error) {
       console.error('Error fetching portfolio:', error);
     }
@@ -46,16 +99,19 @@ const Portfolio = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:5001/api/portfolio/${id}`);
-      fetchPortfolio();
+      const response = await axios.delete(`http://localhost:5001/api/portfolio/${id}`);
+      if (response.data.message === 'Stock sold successfully') {
+        fetchPortfolio(); // Refresh the portfolio after successful sell
+      }
     } catch (error) {
-      console.error('Error deleting stock:', error);
+      console.error('Error selling stock:', error);
+      alert('Error selling stock. Please try again.');
     }
   };
 
   return (
     <div className="portfolio">
-      <h2>Add Stock to Portfolio</h2>
+      <h2>Buy Stock</h2>
       <form onSubmit={handleSubmit} className="add-stock-form">
         <div className="form-group">
           <input
@@ -87,7 +143,7 @@ const Portfolio = () => {
             required
           />
         </div>
-        <button type="submit">Add Stock</button>
+        <button type="submit">Buy Stock</button>
       </form>
 
       <div className="portfolio-list">
@@ -97,8 +153,11 @@ const Portfolio = () => {
             <tr>
               <th>Symbol</th>
               <th>Quantity</th>
-              <th>Average Buy Price</th>
+              <th>Avg. Buy Price</th>
+              <th>Current Price</th>
               <th>Total Investment</th>
+              <th>Current Value</th>
+              <th>P/L</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -108,13 +167,23 @@ const Portfolio = () => {
                 <td>{stock.symbol}</td>
                 <td>{stock.quantity}</td>
                 <td>₹{stock.averageBuyPrice.toFixed(2)}</td>
+                <td>₹{(stock.currentPrice || stock.averageBuyPrice).toFixed(2)}</td>
                 <td>₹{(stock.quantity * stock.averageBuyPrice).toFixed(2)}</td>
+                <td>₹{(stock.currentValue || (stock.quantity * stock.averageBuyPrice)).toFixed(2)}</td>
+                <td className={stock.profitLoss >= 0 ? 'profit' : 'loss'}>
+                  ₹{(stock.profitLoss || 0).toFixed(2)}
+                  <span>({(stock.profitLossPercentage || 0).toFixed(2)}%)</span>
+                </td>
                 <td>
                   <button 
-                    onClick={() => handleDelete(stock._id)}
+                    onClick={() => {
+                      if (window.confirm(`Are you sure you want to sell all ${stock.quantity} shares of ${stock.symbol}?`)) {
+                        handleDelete(stock._id);
+                      }
+                    }}
                     className="delete-btn"
                   >
-                    Delete
+                    Sell
                   </button>
                 </td>
               </tr>

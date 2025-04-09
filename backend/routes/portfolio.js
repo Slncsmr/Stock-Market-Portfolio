@@ -64,15 +64,14 @@ router.patch('/:id', async (req, res) => {
   }
 });
 
-// Delete portfolio item
+// Delete (Sell) portfolio item
 router.delete('/:id', async (req, res) => {
   try {
-    const portfolio = await Portfolio.findById(req.params.id);
-    if (!portfolio) {
+    const result = await Portfolio.findByIdAndDelete(req.params.id);
+    if (!result) {
       return res.status(404).json({ message: 'Portfolio item not found' });
     }
-    await portfolio.remove();
-    res.json({ message: 'Portfolio item deleted' });
+    res.json({ message: 'Stock sold successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

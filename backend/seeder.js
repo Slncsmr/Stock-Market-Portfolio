@@ -1,32 +1,17 @@
 const mongoose = require('mongoose');
 const Stock = require('./models/Stock');
+const { getStockQuote, getCompanyInfo } = require('./services/stockService');
 require('dotenv').config();
 
-const sampleStocks = [
-  {
-    symbol: 'RELIANCE',
-    companyName: 'Reliance Industries Ltd.',
-    currentPrice: 2450.75,
-    dayHigh: 2460.00,
-    dayLow: 2435.50,
-    volume: 1245678
-  },
-  {
-    symbol: 'TCS',
-    companyName: 'Tata Consultancy Services Ltd.',
-    currentPrice: 3250.80,
-    dayHigh: 3275.25,
-    dayLow: 3240.00,
-    volume: 987654
-  },
-  {
-    symbol: 'INFY',
-    companyName: 'Infosys Ltd.',
-    currentPrice: 1475.60,
-    dayHigh: 1480.00,
-    dayLow: 1470.25,
-    volume: 876543
-  }
+const stockSymbols = [
+  'RELIANCE',
+  'TCS',
+  'INFY',
+  'HDFCBANK',
+  'ICICIBANK',
+  'HINDUNILVR',
+  'BHARTIARTL',
+  'SBIN'
 ];
 
 const seedDB = async () => {
@@ -38,9 +23,36 @@ const seedDB = async () => {
     await Stock.deleteMany({});
     console.log('Cleared existing stocks');
     
-    // Insert sample stocks
-    await Stock.insertMany(sampleStocks);
-    console.log('Sample stocks inserted successfully');
+    // Fetch real-time data for each stock
+    const stockPromises = stockSymbols.map(async (symbol) => {
+      try {
+        const [quote, info] = await Promise.all([
+          getStockQuote(symbol),
+          getCompanyInfo(symbol)
+        ]);
+        
+        return {
+          symbol,
+          companyName: info.companyName,
+          currentPrice: quote.currentPrice,
+          dayHigh: quote.dayHigh,
+          dayLow: quote.dayLow,
+          volume: quote.volume,
+          sector: info.sector,
+          industry: info.industry,
+          lastUpdated: new Date()
+        };
+      } catch (error) {
+        console.error(`Error fetching data for ${symbol}:`, error);
+        return null;
+      }
+    });
+
+    const stocksData = (await Promise.all(stockPromises)).filter(stock => stock !== null);
+    
+    // Insert stocks with real-time data
+    await Stock.insertMany(stocksData);
+    console.log('Stocks inserted successfully with real-time data');
     
     mongoose.connection.close();
   } catch (error) {

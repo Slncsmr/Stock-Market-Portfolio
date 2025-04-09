@@ -1,27 +1,84 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import webSocketService from '../services/websocket';
 
 const Dashboard = () => {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchSummary();
+    
+    // Connect to WebSocket
+    webSocketService.connect();
+
+    // Subscribe to stock updates
+    const unsubscribe = webSocketService.subscribe((stockData) => {
+      setSummary(prevSummary => {
+        if (!prevSummary) return prevSummary;
+
+        try {
+          const updatedItems = prevSummary.items.map(item => {
+            if (item.symbol === stockData.symbol) {
+              const currentValue = item.quantity * stockData.currentPrice;
+              const investment = item.quantity * item.averageBuyPrice;
+              const profitLoss = currentValue - investment;
+              return {
+                ...item,
+                currentPrice: stockData.currentPrice,
+                dayHigh: stockData.dayHigh,
+                dayLow: stockData.dayLow,
+                currentValue,
+                investment,
+                profitLoss,
+                profitLossPercentage: (profitLoss / investment) * 100
+              };
+            }
+            return item;
+          });
+
+          const totalCurrentValue = updatedItems.reduce((sum, item) => sum + item.currentValue, 0);
+          const totalInvestment = updatedItems.reduce((sum, item) => sum + item.investment, 0);
+
+          return {
+            totalInvestment,
+            currentValue: totalCurrentValue,
+            items: updatedItems
+          };
+        } catch (error) {
+          console.error('Error processing stock update:', error);
+          return prevSummary;
+        }
+      });
+    });
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, []);
 
   const fetchSummary = async () => {
     try {
+      setError(null);
       const response = await axios.get('http://localhost:5001/api/portfolio/summary');
       setSummary(response.data);
-      setLoading(false);
     } catch (error) {
       console.error('Error fetching portfolio summary:', error);
+      setError('Failed to load portfolio data. Please try again later.');
+    } finally {
       setLoading(false);
     }
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (!summary) return <div>No portfolio data available</div>;
+  if (loading) return <div className="loading">Loading your portfolio data...</div>;
+  if (error) return <div className="error">{error}</div>;
+  if (!summary) return <div className="no-data">No portfolio data available</div>;
+
+  const totalProfitLoss = summary.currentValue - summary.totalInvestment;
+  const totalProfitLossPercentage = (totalProfitLoss / summary.totalInvestment) * 100;
 
   return (
     <div className="dashboard">
@@ -37,10 +94,10 @@ const Dashboard = () => {
         </div>
         <div className="card">
           <h3>Total P/L</h3>
-          <p className={summary.currentValue - summary.totalInvestment >= 0 ? 'profit' : 'loss'}>
-            ₹{(summary.currentValue - summary.totalInvestment).toFixed(2)}
+          <p className={totalProfitLoss >= 0 ? 'profit' : 'loss'}>
+            ₹{totalProfitLoss.toFixed(2)}
             <span>
-              ({((summary.currentValue - summary.totalInvestment) / summary.totalInvestment * 100).toFixed(2)}%)
+              ({totalProfitLossPercentage.toFixed(2)}%)
             </span>
           </p>
         </div>
@@ -62,7 +119,7 @@ const Dashboard = () => {
           </thead>
           <tbody>
             {summary.items.map((item) => (
-              <tr key={item.symbol}>
+              <tr key={item.symbol} className={item.profitLoss >= 0 ? 'profit-row' : 'loss-row'}>
                 <td>{item.symbol}</td>
                 <td>{item.quantity}</td>
                 <td>₹{item.averageBuyPrice.toFixed(2)}</td>

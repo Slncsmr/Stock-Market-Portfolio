@@ -1,17 +1,50 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import webSocketService from '../services/websocket';
 
 const StockSearch = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [stocks, setStocks] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    webSocketService.connect();
+    const unsubscribe = webSocketService.subscribe((stockData) => {
+      setStocks(prevStocks => {
+        return prevStocks.map(stock => {
+          if (stock.symbol === stockData.symbol) {
+            const updatedStock = {
+              ...stock,
+              currentPrice: stockData.currentPrice,
+              dayHigh: stockData.dayHigh,
+              dayLow: stockData.dayLow,
+              volume: stockData.volume,
+              lastUpdated: new Date()
+            };
+            return updatedStock;
+          }
+          return stock;
+        });
+      });
+    });
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, []);
+
   const handleSearch = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
       const response = await axios.get(`http://localhost:5001/api/stocks/${searchTerm.toUpperCase()}`);
-      setStocks(Array.isArray(response.data) ? response.data : [response.data]);
+      const stockData = Array.isArray(response.data) ? response.data : [response.data];
+      setStocks(stockData.map(stock => ({
+        ...stock,
+        lastUpdated: new Date()
+      })));
     } catch (error) {
       console.error('Error searching stocks:', error);
       setStocks([]);
@@ -71,6 +104,12 @@ const StockSearch = () => {
                 <span>Volume:</span>
                 <span>{stock.volume?.toLocaleString() || 'N/A'}</span>
               </div>
+              {stock.lastUpdated && (
+                <div className="detail">
+                  <span>Last Updated:</span>
+                  <span>{new Date(stock.lastUpdated).toLocaleTimeString()}</span>
+                </div>
+              )}
             </div>
             <button 
               onClick={() => addToPortfolio(stock)}
