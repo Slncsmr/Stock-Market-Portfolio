@@ -1,7 +1,7 @@
 # Stock Market Portfolio
 
 A full-stack web application for managing and tracking your stock market investments. This application allows users to create and manage their stock portfolios, track real-time stock prices, and analyze their investment performance.
-<---
+<!---
 ## Features
 
 - Real-time stock price tracking
