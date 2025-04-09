@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import webSocketService from '../services/websocket';
+import { formatIndianNumber } from '../utils/numberFormat';
 
 const Portfolio = () => {
   const [portfolio, setPortfolio] = useState([]);
@@ -26,8 +27,10 @@ const Portfolio = () => {
               ...item,
               currentPrice: stockData.currentPrice,
               currentValue,
+              investment,
               profitLoss,
-              profitLossPercentage: (profitLoss / investment) * 100
+              profitLossPercentage: (profitLoss / investment) * 100,
+              lastUpdated: new Date()
             };
           }
           return item;
@@ -45,31 +48,8 @@ const Portfolio = () => {
 
   const fetchPortfolio = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/api/portfolio');
-      // Add current price and calculations to each portfolio item
-      const portfolioWithPrices = await Promise.all(
-        response.data.map(async (item) => {
-          try {
-            const stockResponse = await axios.get(`http://localhost:5001/api/stocks/${item.symbol}`);
-            const currentPrice = stockResponse.data.currentPrice;
-            const currentValue = item.quantity * currentPrice;
-            const investment = item.quantity * item.averageBuyPrice;
-            const profitLoss = currentValue - investment;
-            
-            return {
-              ...item,
-              currentPrice,
-              currentValue,
-              profitLoss,
-              profitLossPercentage: (profitLoss / investment) * 100
-            };
-          } catch (error) {
-            console.error(`Error fetching price for ${item.symbol}:`, error);
-            return item;
-          }
-        })
-      );
-      setPortfolio(portfolioWithPrices);
+      const response = await api.get('/portfolio');
+      setPortfolio(response.data);
     } catch (error) {
       console.error('Error fetching portfolio:', error);
     }
@@ -85,7 +65,7 @@ const Portfolio = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5001/api/portfolio', {
+      await api.post('/portfolio', {
         symbol: formData.symbol.toUpperCase(),
         quantity: Number(formData.quantity),
         buyPrice: Number(formData.buyPrice)
@@ -99,7 +79,7 @@ const Portfolio = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await axios.delete(`http://localhost:5001/api/portfolio/${id}`);
+      const response = await api.delete(`/portfolio/${id}`);
       if (response.data.message === 'Stock sold successfully') {
         fetchPortfolio(); // Refresh the portfolio after successful sell
       }
@@ -166,12 +146,12 @@ const Portfolio = () => {
               <tr key={stock._id}>
                 <td>{stock.symbol}</td>
                 <td>{stock.quantity}</td>
-                <td>₹{stock.averageBuyPrice.toFixed(2)}</td>
-                <td>₹{(stock.currentPrice || stock.averageBuyPrice).toFixed(2)}</td>
-                <td>₹{(stock.quantity * stock.averageBuyPrice).toFixed(2)}</td>
-                <td>₹{(stock.currentValue || (stock.quantity * stock.averageBuyPrice)).toFixed(2)}</td>
+                <td>{formatIndianNumber(stock.averageBuyPrice)}</td>
+                <td>{formatIndianNumber(stock.currentPrice || stock.averageBuyPrice)}</td>
+                <td>{formatIndianNumber(stock.quantity * stock.averageBuyPrice)}</td>
+                <td>{formatIndianNumber(stock.currentValue || (stock.quantity * stock.averageBuyPrice))}</td>
                 <td className={stock.profitLoss >= 0 ? 'profit' : 'loss'}>
-                  ₹{(stock.profitLoss || 0).toFixed(2)}
+                  {formatIndianNumber(stock.profitLoss || 0)}
                   <span>({(stock.profitLossPercentage || 0).toFixed(2)}%)</span>
                 </td>
                 <td>

@@ -1,13 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import webSocketService from '../services/websocket';
+import { formatIndianNumber } from '../utils/numberFormat';
 
 const Dashboard = () => {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
+    // Get user data from localStorage
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+    
     fetchSummary();
     
     // Connect to WebSocket
@@ -63,7 +71,7 @@ const Dashboard = () => {
   const fetchSummary = async () => {
     try {
       setError(null);
-      const response = await axios.get('http://localhost:5001/api/portfolio/summary');
+      const response = await api.get('/portfolio/summary');
       setSummary(response.data);
     } catch (error) {
       console.error('Error fetching portfolio summary:', error);
@@ -82,20 +90,21 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard">
-      <h2>Portfolio Overview</h2>
+      {user && <h2>Welcome, {user.name}!</h2>}
+      <h3>Portfolio Overview</h3>
       <div className="summary-cards">
         <div className="card">
           <h3>Total Investment</h3>
-          <p>₹{summary.totalInvestment.toFixed(2)}</p>
+          <p>{formatIndianNumber(summary.totalInvestment)}</p>
         </div>
         <div className="card">
           <h3>Current Value</h3>
-          <p>₹{summary.currentValue.toFixed(2)}</p>
+          <p>{formatIndianNumber(summary.currentValue)}</p>
         </div>
         <div className="card">
           <h3>Total P/L</h3>
           <p className={totalProfitLoss >= 0 ? 'profit' : 'loss'}>
-            ₹{totalProfitLoss.toFixed(2)}
+            {formatIndianNumber(totalProfitLoss)}
             <span>
               ({totalProfitLossPercentage.toFixed(2)}%)
             </span>
@@ -122,12 +131,12 @@ const Dashboard = () => {
               <tr key={item.symbol} className={item.profitLoss >= 0 ? 'profit-row' : 'loss-row'}>
                 <td>{item.symbol}</td>
                 <td>{item.quantity}</td>
-                <td>₹{item.averageBuyPrice.toFixed(2)}</td>
-                <td>₹{item.currentPrice.toFixed(2)}</td>
-                <td>₹{item.investment.toFixed(2)}</td>
-                <td>₹{item.currentValue.toFixed(2)}</td>
+                <td>{formatIndianNumber(item.averageBuyPrice)}</td>
+                <td>{formatIndianNumber(item.currentPrice)}</td>
+                <td>{formatIndianNumber(item.investment)}</td>
+                <td>{formatIndianNumber(item.currentValue)}</td>
                 <td className={item.profitLoss >= 0 ? 'profit' : 'loss'}>
-                  ₹{item.profitLoss.toFixed(2)}
+                  {formatIndianNumber(item.profitLoss)}
                   <span>({item.profitLossPercentage.toFixed(2)}%)</span>
                 </td>
               </tr>

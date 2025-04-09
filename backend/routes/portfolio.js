@@ -7,7 +7,24 @@ const Stock = require('../models/Stock');
 router.get('/', async (req, res) => {
   try {
     const portfolio = await Portfolio.find();
-    res.json(portfolio);
+    const enrichedPortfolio = await Promise.all(portfolio.map(async (item) => {
+      const stock = await Stock.findOne({ symbol: item.symbol });
+      const currentPrice = stock ? stock.currentPrice : item.averageBuyPrice;
+      const investment = item.quantity * item.averageBuyPrice;
+      const currentValue = item.quantity * currentPrice;
+      const profitLoss = currentValue - investment;
+      
+      return {
+        ...item._doc,
+        currentPrice,
+        currentValue,
+        investment,
+        profitLoss,
+        profitLossPercentage: (profitLoss / investment) * 100
+      };
+    }));
+    
+    res.json(enrichedPortfolio);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

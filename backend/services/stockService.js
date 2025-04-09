@@ -20,22 +20,31 @@ const isIndianStock = (symbol) => {
 
 const getStockQuote = async (symbol) => {
     try {
+        // First try Yahoo Finance for Indian stocks
         if (isIndianStock(symbol)) {
-            // Use Yahoo Finance for Indian stocks
-            const yahooSymbol = formatYahooSymbol(symbol);
-            const result = await yahooFinance.quote(yahooSymbol);
-            
-            return {
-                symbol: symbol,
-                currentPrice: result.regularMarketPrice,
-                dayHigh: result.regularMarketDayHigh,
-                dayLow: result.regularMarketDayLow,
-                volume: result.regularMarketVolume,
-                lastUpdated: new Date()
-            };
+            try {
+                const yahooSymbol = formatYahooSymbol(symbol);
+                const result = await yahooFinance.quote(yahooSymbol);
+                
+                return {
+                    symbol: symbol,
+                    currentPrice: result.regularMarketPrice,
+                    dayHigh: result.regularMarketDayHigh,
+                    dayLow: result.regularMarketDayLow,
+                    volume: result.regularMarketVolume,
+                    lastUpdated: new Date()
+                };
+            } catch (yahooError) {
+                console.log('Yahoo Finance fetch failed, trying AlphaVantage');
+            }
         }
 
-        // Use Alpha Vantage for other stocks
+        // For non-Indian stocks, verify API key first
+        if (!API_KEY) {
+            throw new Error('AlphaVantage API key not configured');
+        }
+
+        // Try Alpha Vantage API
         const response = await axios.get(BASE_URL, {
             params: {
                 function: 'GLOBAL_QUOTE',
@@ -45,8 +54,11 @@ const getStockQuote = async (symbol) => {
         });
 
         const data = response.data['Global Quote'];
-        if (!data) {
-            throw new Error('No data found for symbol');
+        if (!data || Object.keys(data).length === 0) {
+            if (response.data.Note) {
+                throw new Error('Alpha Vantage API rate limit reached. Please try again in a minute.');
+            }
+            throw new Error(`No data found for symbol ${symbol}. For international stocks like IEX, please ensure the symbol is correct.`);
         }
 
         return {
@@ -58,7 +70,7 @@ const getStockQuote = async (symbol) => {
             lastUpdated: new Date()
         };
     } catch (error) {
-        console.error('Error fetching stock quote:', error);
+        console.error('Error fetching stock quote:', error.message);
         throw error;
     }
 };

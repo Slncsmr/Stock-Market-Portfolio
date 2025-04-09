@@ -9,45 +9,54 @@ router.get('/:symbol', async (req, res) => {
   try {
     const symbol = req.params.symbol.toUpperCase();
     
-    // Get real-time stock data from Alpha Vantage
-    const [quote, companyInfo] = await Promise.all([
-      getStockQuote(symbol),
-      getCompanyInfo(symbol)
-    ]);
-
-    // Merge quote and company info
-    const stockData = {
-      ...quote,
-      companyName: companyInfo.companyName,
-      sector: companyInfo.sector,
-      industry: companyInfo.industry
-    };
-
-    // Update or create stock in database for caching
-    await Stock.findOneAndUpdate(
-      { symbol },
-      stockData,
-      { upsert: true, new: true }
-    );
-
-    res.json(stockData);
-  } catch (error) {
-    console.error('Error fetching stock data:', error);
-    
-    // Fallback to cached data if API fails
+    // Get real-time stock data
     try {
-      const cachedStock = await Stock.findOne({ symbol: req.params.symbol.toUpperCase() });
+      const [quote, companyInfo] = await Promise.all([
+        getStockQuote(symbol),
+        getCompanyInfo(symbol)
+      ]);
+
+      // Merge quote and company info
+      const stockData = {
+        ...quote,
+        companyName: companyInfo.companyName,
+        sector: companyInfo.sector,
+        industry: companyInfo.industry
+      };
+
+      // Update or create stock in database for caching
+      await Stock.findOneAndUpdate(
+        { symbol },
+        stockData,
+        { upsert: true, new: true }
+      );
+
+      res.json(stockData);
+    } catch (apiError) {
+      // If API error is due to configuration, send specific error
+      if (apiError.message.includes('AlphaVantage API key not configured')) {
+        return res.status(503).json({ 
+          message: 'AlphaVantage API key not configured. Required for international stocks.' 
+        });
+      }
+      
+      // Fallback to cached data if available
+      const cachedStock = await Stock.findOne({ symbol });
       if (cachedStock) {
         return res.json({
           ...cachedStock.toObject(),
           cached: true
         });
       }
-    } catch (dbError) {
-      console.error('Error fetching cached data:', dbError);
+      
+      // If no cached data, forward the original error
+      throw apiError;
     }
-    
-    res.status(500).json({ message: 'Error fetching stock data' });
+  } catch (error) {
+    console.error('Error fetching stock data:', error);
+    res.status(404).json({ 
+      message: `Failed to fetch stock data: ${error.message}` 
+    });
   }
 });
 

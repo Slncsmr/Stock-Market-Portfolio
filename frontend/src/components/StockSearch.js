@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import webSocketService from '../services/websocket';
+import { formatIndianNumber } from '../utils/numberFormat';
 
 const StockSearch = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [stocks, setStocks] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     webSocketService.connect();
@@ -38,15 +40,33 @@ const StockSearch = () => {
   const handleSearch = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
+    
+    const symbol = searchTerm.toUpperCase();
     try {
-      const response = await axios.get(`http://localhost:5001/api/stocks/${searchTerm.toUpperCase()}`);
+      const response = await api.get(`/stocks/${symbol}`);
       const stockData = Array.isArray(response.data) ? response.data : [response.data];
-      setStocks(stockData.map(stock => ({
-        ...stock,
-        lastUpdated: new Date()
-      })));
+      
+      if (stockData.length === 0) {
+        setError(`No stock found with symbol "${symbol}"`);
+        setStocks([]);
+      } else {
+        setStocks(stockData.map(stock => ({
+          ...stock,
+          lastUpdated: new Date()
+        })));
+      }
     } catch (error) {
       console.error('Error searching stocks:', error);
+      const errorMessage = error.response?.data?.message || error.message;
+      
+      if (errorMessage.includes('API rate limit')) {
+        setError(`API rate limit reached. Please wait a minute before trying again.`);
+      } else if (errorMessage.includes('AlphaVantage API key not configured')) {
+        setError(`To search international stocks like ${symbol}, please configure the API key. Contact administrator.`);
+      } else {
+        setError(errorMessage || `Failed to fetch data for ${symbol}. Please verify the symbol and try again.`);
+      }
       setStocks([]);
     }
     setLoading(false);
@@ -54,7 +74,7 @@ const StockSearch = () => {
 
   const addToPortfolio = async (stock) => {
     try {
-      await axios.post('http://localhost:5001/api/portfolio', {
+      await api.post('/portfolio', {
         symbol: stock.symbol,
         quantity: 1,
         buyPrice: stock.currentPrice
@@ -68,7 +88,7 @@ const StockSearch = () => {
 
   return (
     <div className="stock-search">
-      <h2>Search BSE Stocks</h2>
+      <h2>Search Stocks</h2>
       <form onSubmit={handleSearch} className="search-form">
         <input
           type="text"
@@ -81,6 +101,7 @@ const StockSearch = () => {
       </form>
 
       {loading && <div>Loading...</div>}
+      {error && <div className="error-message" style={{ color: 'red', margin: '10px 0' }}>{error}</div>}
 
       <div className="search-results">
         {stocks.map((stock) => (
@@ -90,15 +111,15 @@ const StockSearch = () => {
             <div className="stock-details">
               <div className="detail">
                 <span>Current Price:</span>
-                <span>₹{stock.currentPrice.toFixed(2)}</span>
+                <span>{formatIndianNumber(stock.currentPrice)}</span>
               </div>
               <div className="detail">
                 <span>Day High:</span>
-                <span>₹{stock.dayHigh?.toFixed(2) || 'N/A'}</span>
+                <span>{stock.dayHigh ? formatIndianNumber(stock.dayHigh) : 'N/A'}</span>
               </div>
               <div className="detail">
                 <span>Day Low:</span>
-                <span>₹{stock.dayLow?.toFixed(2) || 'N/A'}</span>
+                <span>{stock.dayLow ? formatIndianNumber(stock.dayLow) : 'N/A'}</span>
               </div>
               <div className="detail">
                 <span>Volume:</span>
@@ -115,7 +136,7 @@ const StockSearch = () => {
               onClick={() => addToPortfolio(stock)}
               className="add-to-portfolio-btn"
             >
-              Add to Portfolio
+              Buy
             </button>
           </div>
         ))}
