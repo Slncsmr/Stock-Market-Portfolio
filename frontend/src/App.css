@@ -84,9 +84,10 @@ body {
 
 /* Main Content */
 .main-content {
-  padding: 2rem;
+  padding: 1rem;
   max-width: 1200px;
   margin: 0 auto;
+  width: 100%;
 }
 
 /* Dashboard */
@@ -100,8 +101,8 @@ body {
 .summary-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .card {
@@ -117,13 +118,20 @@ body {
 }
 
 .card p {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: bold;
 }
 
 /* Tables */
+.holdings-table {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1.5rem;
+}
+
 table {
   width: 100%;
+  min-width: 600px;
   border-collapse: collapse;
   background: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -146,10 +154,10 @@ th {
 /* Forms */
 .add-stock-form, .search-form {
   background: white;
-  padding: 2rem;
+  padding: 1rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
@@ -193,13 +201,14 @@ button:hover {
 /* Stock Search Results */
 .search-results {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  padding: 0.5rem;
 }
 
 .stock-card {
   background: white;
-  padding: 1.5rem;
+  padding: 1rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -253,13 +262,13 @@ button:hover {
   justify-content: center;
   align-items: center;
   min-height: calc(100vh - 64px);
-  padding: 2rem;
+  padding: 1rem;
   background-color: #f5f5f5;
 }
 
 .login-card {
   background: white;
-  padding: 2rem;
+  padding: 1.5rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   width: 100%;
@@ -353,4 +362,45 @@ button:hover {
 
 .auth-link a:hover {
   text-decoration: underline;
+}
+
+/* Responsive Typography */
+@media (max-width: 600px) {
+  h1 {
+    font-size: 1.75rem;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+  }
+  
+  h3 {
+    font-size: 1.25rem;
+  }
+  
+  .nav-brand {
+    font-size: 1.1rem;
+  }
+  
+  .card p {
+    font-size: 1.25rem;
+  }
+}
+
+/* Improve touch targets for mobile */
+@media (max-width: 600px) {
+  button, 
+  input,
+  .nav-links a {
+    min-height: 44px;
+    padding: 0.75rem;
+  }
+  
+  .nav-links {
+    gap: 1rem;
+  }
+  
+  td, th {
+    padding: 0.75rem;
+  }
 }
