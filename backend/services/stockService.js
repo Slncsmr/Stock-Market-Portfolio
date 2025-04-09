@@ -1,48 +1,46 @@
 const axios = require('axios');
-const yahooFinance = require('yahoo-finance2').default;
+const yahooFinance = require('yahoo-finance2').default; // Add .default here
 const API_KEY = process.env.ALPHA_VANTAGE_API_KEY;
 const BASE_URL = 'https://www.alphavantage.co/query';
 
-const formatSymbol = (symbol) => {
-    // Mapping of stocks to their Yahoo Finance symbols for Indian stocks
-    const indianStockMap = {
-        'INFY': 'INFY.NS',
-        'TCS': 'TCS.NS',
-        'RELIANCE': 'RELIANCE.NS'
-    };
-    
-    return indianStockMap[symbol.toUpperCase()] || symbol;
+const formatYahooSymbol = (symbol) => {
+    return `${symbol}.NS`; // NS for NSE (National Stock Exchange)
+};
+
+const isIndianStock = (symbol) => {
+    const indianStocks = ['RELIANCE', 'TCS', 'INFY', 'WIPRO', 'HDFCBANK'];
+    return indianStocks.includes(symbol.toUpperCase());
 };
 
 const getStockQuote = async (symbol) => {
     try {
-        const formattedSymbol = formatSymbol(symbol);
-        
-        // Use Yahoo Finance for Indian stocks
-        if (formattedSymbol.endsWith('.NS')) {
-            const quote = await yahooFinance.quote(formattedSymbol);
+        if (isIndianStock(symbol)) {
+            // Use Yahoo Finance for Indian stocks
+            const yahooSymbol = formatYahooSymbol(symbol);
+            const result = await yahooFinance.quote(yahooSymbol);
+            
             return {
-                symbol: symbol, // Return original symbol without suffix
-                currentPrice: quote.regularMarketPrice,
-                dayHigh: quote.regularMarketDayHigh,
-                dayLow: quote.regularMarketDayLow,
-                volume: quote.regularMarketVolume,
+                symbol: symbol,
+                currentPrice: result.regularMarketPrice,
+                dayHigh: result.regularMarketDayHigh,
+                dayLow: result.regularMarketDayLow,
+                volume: result.regularMarketVolume,
                 lastUpdated: new Date()
             };
         }
-        
+
         // Use Alpha Vantage for other stocks
         const response = await axios.get(BASE_URL, {
             params: {
                 function: 'GLOBAL_QUOTE',
-                symbol: formattedSymbol,
+                symbol,
                 apikey: API_KEY
             }
         });
 
         const data = response.data['Global Quote'];
         if (!data) {
-            throw new Error(`No data found for symbol ${formattedSymbol}`);
+            throw new Error('No data found for symbol');
         }
 
         return {
@@ -61,17 +59,17 @@ const getStockQuote = async (symbol) => {
 
 const getCompanyInfo = async (symbol) => {
     try {
-        const formattedSymbol = formatSymbol(symbol);
-        
-        // Use Yahoo Finance for Indian stocks
-        if (formattedSymbol.endsWith('.NS')) {
-            const quote = await yahooFinance.quoteSummary(formattedSymbol, { modules: ['summaryProfile'] });
+        if (isIndianStock(symbol)) {
+            // Use Yahoo Finance for Indian stocks
+            const yahooSymbol = formatYahooSymbol(symbol);
+            const result = await yahooFinance.quote(yahooSymbol);
+            
             return {
                 symbol: symbol,
-                companyName: quote.summaryProfile.name || symbol,
-                description: quote.summaryProfile.longBusinessSummary || '',
-                sector: quote.summaryProfile.sector || '',
-                industry: quote.summaryProfile.industry || ''
+                companyName: result.longName || result.shortName,
+                description: 'Company information from Yahoo Finance',
+                sector: result.sector || 'N/A',
+                industry: result.industry || 'N/A'
             };
         }
 
@@ -79,13 +77,13 @@ const getCompanyInfo = async (symbol) => {
         const response = await axios.get(BASE_URL, {
             params: {
                 function: 'OVERVIEW',
-                symbol: formattedSymbol,
+                symbol,
                 apikey: API_KEY
             }
         });
 
         if (!response.data || response.data.Note) {
-            throw new Error(`No company info found for ${formattedSymbol}`);
+            throw new Error('No company info found');
         }
 
         return {
