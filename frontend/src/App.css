@@ -98,6 +98,15 @@ body {
   color: #1a237e;
 }
 
+.portfolio h2 {
+  color: #1a237e;
+  font-size: 1.75rem;
+  margin-bottom: 1.5rem;
+  text-align: left;
+  border-bottom: 2px solid #1a237e;
+  padding-bottom: 0.5rem;
+}
+
 .summary-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -161,6 +170,53 @@ th {
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
+}
+
+.portfolio .add-stock-form {
+  margin: 1rem 0 1rem 0;
+  padding: 1.5rem;
+  border-radius: 8px;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.portfolio .add-stock-form .form-group {
+  flex: 1;
+  min-width: 200px;
+  margin: 0;
+}
+
+.portfolio .add-stock-form button {
+  align-self: flex-end;
+  min-width: 120px;
+}
+
+.portfolio .message-container {
+  margin: 1rem 0;
+}
+
+.portfolio .error-message,
+.portfolio .success-message {
+  opacity: 1;
+  transition: opacity 0.3s ease-in-out;
+  animation: fadeOut 5s forwards;
+  margin: 1rem 0;
+  padding: 1rem;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.portfolio .error-message {
+  background-color: #fee;
+  border: 1px solid #fcc;
+}
+
+.portfolio .success-message {
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
 }
 
 .form-group {
@@ -403,4 +459,396 @@ button:hover {
   td, th {
     padding: 0.75rem;
   }
+}
+
+/* Profile Styles */
+.profile-container,
+.topup-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.profile-card,
+.topup-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  margin-top: 1.5rem;
+}
+
+.balance-section {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #eee;
+}
+
+.balance-section h3 {
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.balance {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #1a237e;
+}
+
+.profile-details {
+  margin-bottom: 2rem;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.detail-row label {
+  font-weight: 500;
+  color: #666;
+}
+
+.profile-form textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.button-group {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.cancel-btn {
+  background-color: #dc3545;
+}
+
+.cancel-btn:hover {
+  background-color: #c82333;
+}
+
+.edit-btn {
+  margin-top: 1.5rem;
+}
+
+/* TopUp Styles */
+.predefined-amounts {
+  margin-bottom: 2rem;
+}
+
+.amount-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.amount-btn {
+  padding: 1rem;
+  border: 2px solid #1a237e;
+  background: white;
+  color: #1a237e;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.amount-btn:hover {
+  background: #1a237e;
+  color: white;
+}
+
+.amount-btn.selected {
+  background: #1a237e;
+  color: white;
+}
+
+.amount-btn:disabled {
+  background-color: #eee;
+  border-color: #ccc;
+  color: #999;
+  cursor: not-allowed;
+}
+
+.amount-btn:disabled:hover {
+  background-color: #eee;
+  color: #999;
+}
+
+.amount-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.currency-symbol {
+  position: absolute;
+  left: 1rem;
+  color: #666;
+}
+
+.amount-input input {
+  padding-left: 2rem;
+}
+
+.info-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #eee;
+}
+
+.info-section h4 {
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.info-section ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.info-section li {
+  padding: 0.5rem 0;
+  color: #666;
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.info-section li:before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: #1a237e;
+}
+
+.success-message {
+  color: #28a745;
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.portfolio .success-message,
+.portfolio .error-message {
+  opacity: 1;
+  transition: opacity 0.3s ease-in-out;
+  animation: fadeOut 5s forwards;
+}
+
+@keyframes fadeOut {
+  0% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Success Screen */
+.success-screen {
+  text-align: center;
+  padding: 2rem;
+  margin: 2rem 0;
+}
+
+.success-icon {
+  font-size: 3rem;
+  color: #28a745;
+  margin-bottom: 1rem;
+  animation: scaleIn 0.3s ease-in-out;
+}
+
+@keyframes scaleIn {
+  0% {
+    transform: scale(0);
+  }
+  70% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.success-message h3 {
+  color: #28a745;
+  margin-bottom: 1rem;
+}
+
+.amount-added {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1a237e;
+  margin-bottom: 0.5rem;
+}
+
+.new-balance {
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+.continue-btn {
+  background-color: #28a745;
+  margin-top: 1rem;
+}
+
+.continue-btn:hover {
+  background-color: #218838;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 600px) {
+  .profile-container,
+  .topup-container {
+    padding: 1rem;
+  }
+
+  .balance {
+    font-size: 2rem;
+  }
+
+  .amount-buttons {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+}
+
+/* Partial Sell Modal */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  min-width: 300px;
+  max-width: 500px;
+  width: 90%;
+}
+
+.modal-body {
+  margin: 1.5rem 0;
+}
+
+.modal-body input {
+  width: 100%;
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.modal-footer button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.modal-footer button:first-child {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.modal-footer button:first-child:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.modal-footer button:last-child {
+  background-color: #f44336;
+  color: white;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.partial-sell-btn,
+.delete-btn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  min-width: 100px;
+  font-size: 0.9rem;
+}
+
+.partial-sell-btn:hover,
+.delete-btn:hover {
+  background-color: #c82333;
+}
+
+.partial-sell-btn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 5px;
+}
+
+.partial-sell-btn:hover {
+  background-color: #c82333;
+}
+
+/* Transaction Type Selector */
+.transaction-type-selector {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  justify-content: center;
+}
+
+.type-btn {
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #1a237e;
+  background: white;
+  color: #1a237e;
+  border-radius: 4px;
+  transition: all 0.2s;
+  flex: 1;
+  max-width: 200px;
+}
+
+.type-btn:hover {
+  background: #1a237e;
+  color: white;
+}
+
+.type-btn.selected {
+  background: #1a237e;
+  color: white;
 }

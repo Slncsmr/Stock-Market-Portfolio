@@ -8,9 +8,12 @@ const StockSearch = () => {
   const [stocks, setStocks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [userBalance, setUserBalance] = useState(0);
+  const [success, setSuccess] = useState('');
 
   useEffect(() => {
     webSocketService.connect();
+    fetchUserBalance();
     const unsubscribe = webSocketService.subscribe((stockData) => {
       setStocks(prevStocks => {
         return prevStocks.map(stock => {
@@ -36,6 +39,15 @@ const StockSearch = () => {
       }
     };
   }, []);
+
+  const fetchUserBalance = async () => {
+    try {
+      const response = await api.get('/auth/profile');
+      setUserBalance(response.data.balance);
+    } catch (error) {
+      console.error('Error fetching balance:', error);
+    }
+  };
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -74,20 +86,35 @@ const StockSearch = () => {
 
   const addToPortfolio = async (stock) => {
     try {
+      if (stock.currentPrice > userBalance) {
+        setError(`Insufficient balance. Required: ${formatIndianNumber(stock.currentPrice)}, Available: ${formatIndianNumber(userBalance)}`);
+        return;
+      }
+
       await api.post('/portfolio', {
         symbol: stock.symbol,
         quantity: 1,
         buyPrice: stock.currentPrice
       });
-      alert('Stock added to portfolio!');
+
+      setUserBalance(prevBalance => prevBalance - stock.currentPrice);
+      setSuccess('Stock added to portfolio!');
+      setError('');
+
+      setTimeout(() => setSuccess(''), 3000);
     } catch (error) {
       console.error('Error adding to portfolio:', error);
-      alert('Error adding stock to portfolio');
+      setError(error.response?.data?.message || 'Error adding stock to portfolio');
     }
   };
 
   return (
     <div className="stock-search">
+      <div className="balance-info">
+        <h3>Available Balance</h3>
+        <p className="balance">{formatIndianNumber(userBalance)}</p>
+      </div>
+
       <h2>Search Stocks</h2>
       <form onSubmit={handleSearch} className="search-form">
         <input
@@ -102,6 +129,7 @@ const StockSearch = () => {
 
       {loading && <div>Loading...</div>}
       {error && <div className="error-message" style={{ color: 'red', margin: '10px 0' }}>{error}</div>}
+      {success && <div className="success-message" style={{ color: 'green', margin: '10px 0' }}>{success}</div>}
 
       <div className="search-results">
         {stocks.map((stock) => (
@@ -135,8 +163,9 @@ const StockSearch = () => {
             <button 
               onClick={() => addToPortfolio(stock)}
               className="add-to-portfolio-btn"
+              disabled={stock.currentPrice > userBalance}
             >
-              Buy
+              {stock.currentPrice > userBalance ? 'Insufficient Balance' : 'Buy'}
             </button>
           </div>
         ))}

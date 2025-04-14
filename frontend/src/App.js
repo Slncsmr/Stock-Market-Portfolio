@@ -7,6 +7,8 @@ import Portfolio from './components/Portfolio';
 import StockSearch from './components/StockSearch';
 import Login from './components/Login';
 import Register from './components/Register';
+import Profile from './components/Profile';
+import TopUp from './components/TopUp';
 
 // Protected Route component moved outside App
 const ProtectedRoute = ({ children }) => {
@@ -53,6 +55,8 @@ function App() {
                 <li><Link to="/">Dashboard</Link></li>
                 <li><Link to="/portfolio">Portfolio</Link></li>
                 <li><Link to="/search">Search Stocks</Link></li>
+                <li><Link to="/profile">Profile</Link></li>
+                <li><Link to="/topup">Top Up</Link></li>
                 <li>
                   <button onClick={handleLogout} className="logout-btn">
                     Logout
@@ -89,6 +93,16 @@ function App() {
             <Route path="/search" element={
               <ProtectedRoute>
                 <StockSearch />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
+            <Route path="/topup" element={
+              <ProtectedRoute>
+                <TopUp />
               </ProtectedRoute>
             } />
             <Route path="*" element={<Navigate to="/" />} />

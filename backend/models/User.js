@@ -18,6 +18,14 @@ const userSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  balance: {
+    type: Number,
+    default: 0
+  },
+  phone: {
+    type: String,
+    trim: true
+  },
   createdAt: {
     type: Date,
     default: Date.now

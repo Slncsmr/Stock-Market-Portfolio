@@ -3,19 +3,20 @@ const yahooFinance = require('yahoo-finance2').default; // Add .default here
 const API_KEY = process.env.ALPHA_VANTAGE_API_KEY;
 const BASE_URL = 'https://www.alphavantage.co/query';
 
+const validStocks = [
+    'RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'ICICIBANK', 'HINDUNILVR', 
+    'BHARTIARTL', 'SBIN', 'BAJFINANCE', 'WIPRO', 'LT', 'AXISBANK', 
+    'ASIANPAINT', 'MARUTI', 'KOTAKBANK', 'TATAMOTORS', 'SUNPHARMA', 
+    'NESTLEIND', 'TITAN', 'BAJAJFINSV', 'ULTRACEMCO', 'TECHM', 'NTPC',
+    'POWERGRID', 'HCLTECH', 'ITC', 'M&M', 'TATASTEEL', 'ONGC', 'ADANIENT'
+];
+
 const formatYahooSymbol = (symbol) => {
     return `${symbol}.NS`; // NS for NSE (National Stock Exchange)
 };
 
 const isIndianStock = (symbol) => {
-    const indianStocks = [
-        'RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'ICICIBANK', 'HINDUNILVR', 
-        'BHARTIARTL', 'SBIN', 'BAJFINANCE', 'WIPRO', 'LT', 'AXISBANK', 
-        'ASIANPAINT', 'MARUTI', 'KOTAKBANK', 'TATAMOTORS', 'SUNPHARMA', 
-        'NESTLEIND', 'TITAN', 'BAJAJFINSV', 'ULTRACEMCO', 'TECHM', 'NTPC',
-        'POWERGRID', 'HCLTECH', 'ITC', 'M&M', 'TATASTEEL', 'ONGC', 'ADANIENT'
-    ];
-    return indianStocks.includes(symbol.toUpperCase());
+    return validStocks.includes(symbol.toUpperCase());
 };
 
 const getStockQuote = async (symbol) => {
@@ -119,5 +120,6 @@ const getCompanyInfo = async (symbol) => {
 
 module.exports = {
     getStockQuote,
-    getCompanyInfo
+    getCompanyInfo,
+    isIndianStock
 };
