@@ -48,7 +48,7 @@ function App() {
     <Router>
       <div className="App">
         <nav className="navbar">
-          <div className="nav-brand">BSE Portfolio Tracker</div>
+          <div className="nav-brand">Stockify</div>
           <ul className="nav-links">
             {user ? (
               <>

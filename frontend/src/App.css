@@ -98,7 +98,8 @@ body {
   color: #1a237e;
 }
 
-.portfolio h2 {
+.portfolio h2,
+.portfolio-card h3 {
   color: #1a237e;
   font-size: 1.75rem;
   margin-bottom: 1.5rem;
@@ -109,9 +110,9 @@ body {
 
 .summary-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .card {
@@ -131,11 +132,78 @@ body {
   font-weight: bold;
 }
 
+/* Dashboard Portfolio Cards */
+.portfolio-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(26, 35, 126, 0.15);
+  margin-bottom: 2rem;
+  border: 1px solid rgba(26, 35, 126, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.portfolio-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(26, 35, 126, 0.2);
+}
+
+.portfolio-card h3 {
+  color: #1a237e;
+  border-bottom: 2px solid #1a237e;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.summary-item {
+  padding: 1.5rem;
+  background: white;
+  border: 1px solid rgba(26, 35, 126, 0.1);
+  border-radius: 10px;
+  text-align: center;
+  transition: transform 0.2s ease;
+  box-shadow: 0 2px 8px rgba(26, 35, 126, 0.08);
+}
+
+.summary-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(26, 35, 126, 0.12);
+}
+
+.summary-item h4 {
+  color: #666;
+  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.summary-item p {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1a237e;
+  margin: 0;
+}
+
+.summary-item p.profit span {
+  font-size: 0.875rem;
+  margin-left: 0.5rem;
+}
+
+.summary-item p.loss span {
+  font-size: 0.875rem;
+  margin-left: 0.5rem;
+}
+
 /* Tables */
 .holdings-table {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   margin-bottom: 1.5rem;
+  margin-top: 2rem;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(26, 35, 126, 0.15);
+  border: 1px solid rgba(26, 35, 126, 0.1);
 }
 
 table {
@@ -158,6 +226,24 @@ th {
   background-color: #f8f9fa;
   font-weight: 600;
   color: #495057;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.holdings-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.holdings-table tr:hover {
+  background-color: #f8f9fa;
+}
+
+.profit-row:hover {
+  background-color: rgba(40, 167, 69, 0.05);
+}
+
+.loss-row:hover {
+  background-color: rgba(220, 53, 69, 0.05);
 }
 
 /* Forms */
@@ -294,6 +380,15 @@ button:hover {
 .add-to-portfolio-btn {
   width: 100%;
   margin-top: 1rem;
+}
+
+/* Stock Price Display */
+.stock-price {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #1a237e;
+  margin: 0.5rem 0;
+  text-align: left;
 }
 
 /* Utilities */
@@ -851,4 +946,19 @@ button:hover {
 .type-btn.selected {
   background: #1a237e;
   color: white;
+}
+
+/* Responsive layout for mobile */
+@media (max-width: 768px) {
+  .summary-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .holdings-table {
+    overflow-x: auto;
+  }
+  
+  .holdings-table table {
+    min-width: 800px;
+  }
 }

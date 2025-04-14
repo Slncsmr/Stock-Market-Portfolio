@@ -91,58 +91,63 @@ const Dashboard = () => {
   return (
     <div className="dashboard">
       {user && <h2>Welcome, {user.name}!</h2>}
-      <h3>Portfolio Overview</h3>
-      <div className="summary-cards">
-        <div className="card">
-          <h3>Total Investment</h3>
-          <p>{formatIndianNumber(summary.totalInvestment)}</p>
-        </div>
-        <div className="card">
-          <h3>Current Value</h3>
-          <p>{formatIndianNumber(summary.currentValue)}</p>
-        </div>
-        <div className="card">
-          <h3>Total P/L</h3>
-          <p className={totalProfitLoss >= 0 ? 'profit' : 'loss'}>
-            {formatIndianNumber(totalProfitLoss)}
-            <span>
-              ({totalProfitLossPercentage.toFixed(2)}%)
-            </span>
-          </p>
+      
+      <div className="portfolio-card">
+        <h3>Portfolio Overview</h3>
+        <div className="summary-cards">
+          <div className="summary-item">
+            <h4>Total Investment</h4>
+            <p>{formatIndianNumber(summary.totalInvestment)}</p>
+          </div>
+          <div className="summary-item">
+            <h4>Current Value</h4>
+            <p>{formatIndianNumber(summary.currentValue)}</p>
+          </div>
+          <div className="summary-item">
+            <h4>Total P/L</h4>
+            <p style={{ color: totalProfitLoss >= 0 ? '#22c55e' : '#ef4444' }}>
+              {formatIndianNumber(totalProfitLoss)}
+              <span style={{ marginLeft: '4px' }}>
+                ({totalProfitLossPercentage.toFixed(2)}%)
+              </span>
+            </p>
+          </div>
         </div>
       </div>
 
-      <div className="holdings-table">
+      <div className="portfolio-card">
         <h3>Your Holdings</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Symbol</th>
-              <th>Quantity</th>
-              <th>Avg. Buy Price</th>
-              <th>Current Price</th>
-              <th>Investment</th>
-              <th>Current Value</th>
-              <th>P/L</th>
-            </tr>
-          </thead>
-          <tbody>
-            {summary.items.map((item) => (
-              <tr key={item.symbol} className={item.profitLoss >= 0 ? 'profit-row' : 'loss-row'}>
-                <td>{item.symbol}</td>
-                <td>{item.quantity}</td>
-                <td>{formatIndianNumber(item.averageBuyPrice)}</td>
-                <td>{formatIndianNumber(item.currentPrice)}</td>
-                <td>{formatIndianNumber(item.investment)}</td>
-                <td>{formatIndianNumber(item.currentValue)}</td>
-                <td className={item.profitLoss >= 0 ? 'profit' : 'loss'}>
-                  {formatIndianNumber(item.profitLoss)}
-                  <span>({item.profitLossPercentage.toFixed(2)}%)</span>
-                </td>
+        <div className="holdings-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Quantity</th>
+                <th>Avg. Buy Price</th>
+                <th>Current Price</th>
+                <th>Investment</th>
+                <th>Current Value</th>
+                <th>P/L</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {summary.items.map((item) => (
+                <tr key={item.symbol} className={item.profitLoss >= 0 ? 'profit-row' : 'loss-row'}>
+                  <td>{item.symbol}</td>
+                  <td>{item.quantity}</td>
+                  <td>{formatIndianNumber(item.averageBuyPrice)}</td>
+                  <td>{formatIndianNumber(item.currentPrice)}</td>
+                  <td>{formatIndianNumber(item.investment)}</td>
+                  <td>{formatIndianNumber(item.currentValue)}</td>
+                  <td className={item.profitLoss >= 0 ? 'profit' : 'loss'}>
+                    {formatIndianNumber(item.profitLoss)}
+                    <span>({item.profitLossPercentage.toFixed(2)}%)</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

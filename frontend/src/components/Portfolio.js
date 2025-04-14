@@ -207,7 +207,8 @@ const Portfolio = () => {
         <p className="balance">{formatIndianNumber(userBalance)}</p>
       </div>
 
-      <h2>Buy Stock</h2>
+            <h2>Buy Stock</h2>
+
       <form onSubmit={handleSubmit} className="add-stock-form">
         <div className="form-group">
           <input

@@ -116,14 +116,17 @@ const StockSearch = () => {
       </div>
 
       <h2>Search Stocks</h2>
-      <form onSubmit={handleSearch} className="search-form">
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Enter stock symbol (e.g., RELIANCE)"
-          required
-        />
+      <form onSubmit={handleSearch} className="search-form" style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ flex: 1 }}>
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Enter stock symbol (e.g., RELIANCE)"
+            required
+            style={{ width: '100%' }}
+          />
+        </div>
         <button type="submit">Search</button>
       </form>
 
