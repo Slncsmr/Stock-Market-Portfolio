@@ -2,26 +2,26 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import webSocketService from '../services/websocket';
 import { formatIndianNumber } from '../utils/numberFormat';
+import PriceChart from './PriceChart';
 
 const Dashboard = () => {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
+  const [portfolio, setPortfolio] = useState([]);
 
   useEffect(() => {
-    // Get user data from localStorage
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
     
     fetchSummary();
+    fetchPortfolio();
     
-    // Connect to WebSocket
     webSocketService.connect();
 
-    // Subscribe to stock updates
     const unsubscribe = webSocketService.subscribe((stockData) => {
       setSummary(prevSummary => {
         if (!prevSummary) return prevSummary;
@@ -59,6 +59,25 @@ const Dashboard = () => {
           return prevSummary;
         }
       });
+
+      setPortfolio(prevPortfolio => {
+        return prevPortfolio.map(item => {
+          if (item.symbol === stockData.symbol) {
+            const currentValue = item.quantity * stockData.currentPrice;
+            const investment = item.quantity * item.averageBuyPrice;
+            const profitLoss = currentValue - investment;
+            return {
+              ...item,
+              currentPrice: stockData.currentPrice,
+              currentValue,
+              investment,
+              profitLoss,
+              profitLossPercentage: (profitLoss / investment) * 100
+            };
+          }
+          return item;
+        });
+      });
     });
 
     return () => {
@@ -67,6 +86,20 @@ const Dashboard = () => {
       }
     };
   }, []);
+
+  const fetchPortfolio = async () => {
+    try {
+      const response = await api.get('/portfolio');
+      const portfolioWithValues = response.data.map(item => ({
+        ...item,
+        currentValue: item.quantity * (item.currentPrice || item.averageBuyPrice),
+        investment: item.quantity * item.averageBuyPrice
+      }));
+      setPortfolio(portfolioWithValues);
+    } catch (error) {
+      console.error('Error fetching portfolio:', error);
+    }
+  };
 
   const fetchSummary = async () => {
     try {
@@ -113,6 +146,11 @@ const Dashboard = () => {
             </p>
           </div>
         </div>
+      </div>
+
+      <div className="portfolio-card">
+        <h3>Portfolio Value History</h3>
+        <PriceChart portfolioData={portfolio} />
       </div>
 
       <div className="portfolio-card">

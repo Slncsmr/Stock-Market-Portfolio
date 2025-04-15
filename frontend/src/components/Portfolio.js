@@ -3,6 +3,7 @@ import api from '../services/api';
 import webSocketService from '../services/websocket';
 import { formatIndianNumber } from '../utils/numberFormat';
 import { isValidStock } from '../utils/stockUtils';
+import PriceChart from './PriceChart';
 
 const Portfolio = () => {
   const [portfolio, setPortfolio] = useState([]);
@@ -62,7 +63,13 @@ const Portfolio = () => {
   const fetchPortfolio = async () => {
     try {
       const response = await api.get('/portfolio');
-      setPortfolio(response.data);
+      // Ensure portfolio data includes currentValue and investment calculations
+      const portfolioWithValues = response.data.map(item => ({
+        ...item,
+        currentValue: item.quantity * (item.currentPrice || item.averageBuyPrice),
+        investment: item.quantity * item.averageBuyPrice
+      }));
+      setPortfolio(portfolioWithValues);
     } catch (error) {
       console.error('Error fetching portfolio:', error);
     }
@@ -109,11 +116,12 @@ const Portfolio = () => {
         buyPrice: Number(formData.buyPrice)
       });
       
-      // Update user balance after successful purchase
+      // Update user balance and portfolio data
       setUserBalance(prevBalance => prevBalance - totalCost);
       setSuccess('Stock purchased successfully');
       setFormData({ symbol: '', quantity: '', buyPrice: '' });
-      fetchPortfolio();
+      // Refresh portfolio to update the chart
+      await fetchPortfolio();
     } catch (error) {
       console.error('Error adding stock:', error);
       setError(error.response?.data?.message || 'Error purchasing stock');
@@ -134,7 +142,8 @@ const Portfolio = () => {
           balance: response.data.newBalance
         }));
         
-        fetchPortfolio(); // Refresh the portfolio after successful sell
+        // Refresh portfolio to update the chart
+        await fetchPortfolio();
       }
     } catch (error) {
       console.error('Error selling stock:', error);
@@ -191,7 +200,8 @@ const Portfolio = () => {
         }));
         
         closePartialSellModal();
-        fetchPortfolio();
+        // Refresh portfolio to update the chart
+        await fetchPortfolio();
         setSuccess('Stock partially sold successfully');
       }
     } catch (error) {
@@ -207,7 +217,9 @@ const Portfolio = () => {
         <p className="balance">{formatIndianNumber(userBalance)}</p>
       </div>
 
-            <h2>Buy Stock</h2>
+      <PriceChart portfolioData={portfolio} />
+
+      <h2>Buy Stock</h2>
 
       <form onSubmit={handleSubmit} className="add-stock-form">
         <div className="form-group">

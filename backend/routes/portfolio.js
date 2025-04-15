@@ -6,7 +6,7 @@ const User = require('../models/User');
 const auth = require('../middleware/auth'); // Assuming auth middleware is defined
 const { isIndianStock } = require('../services/stockService');
 
-// Get all portfolio items
+// Get all portfolio items with transaction history
 router.get('/', async (req, res) => {
   try {
     const portfolio = await Portfolio.find({ user: req.user._id });
@@ -17,13 +17,23 @@ router.get('/', async (req, res) => {
       const currentValue = item.quantity * currentPrice;
       const profitLoss = currentValue - investment;
       
+      // Add transaction history to calculate historical values
+      const transactionHistory = item.transactions.map(t => ({
+        type: t.type,
+        quantity: t.quantity,
+        price: t.price,
+        value: t.quantity * t.price,
+        timestamp: t.timestamp
+      }));
+      
       return {
         ...item._doc,
         currentPrice,
         currentValue,
         investment,
         profitLoss,
-        profitLossPercentage: (profitLoss / investment) * 100
+        profitLossPercentage: (profitLoss / investment) * 100,
+        transactionHistory
       };
     }));
     
@@ -75,6 +85,15 @@ router.post('/', async (req, res) => {
       existingStock.quantity = newQuantity;
       existingStock.averageBuyPrice = newTotalCost / newQuantity;
       existingStock.lastUpdated = Date.now();
+      
+      // Add buy transaction
+      existingStock.transactions.push({
+        type: 'buy',
+        quantity,
+        price: buyPrice,
+        timestamp: new Date()
+      });
+      
       updatedPortfolio = await existingStock.save();
     } else {
       // Create new position
@@ -82,7 +101,13 @@ router.post('/', async (req, res) => {
         symbol: symbol.toUpperCase(),
         quantity,
         averageBuyPrice: buyPrice,
-        user: req.user._id
+        user: req.user._id,
+        transactions: [{
+          type: 'buy',
+          quantity,
+          price: buyPrice,
+          timestamp: new Date()
+        }]
       });
       updatedPortfolio = await portfolio.save();
     }
@@ -171,12 +196,22 @@ router.patch('/:id', validateOwnership, async (req, res) => {
   }
 });
 
+// Delete (sell all) portfolio item
 router.delete('/:id', validateOwnership, async (req, res) => {
   try {
     const portfolioItem = req.portfolioItem;
     const stock = await Stock.findOne({ symbol: portfolioItem.symbol });
     const currentPrice = stock ? stock.currentPrice : portfolioItem.averageBuyPrice;
     const saleValue = portfolioItem.quantity * currentPrice;
+
+    // Add final sell transaction before deleting
+    portfolioItem.transactions.push({
+      type: 'sell',
+      quantity: portfolioItem.quantity,
+      price: currentPrice,
+      timestamp: new Date()
+    });
+    await portfolioItem.save();
 
     // Update user's balance with sale proceeds
     const user = await User.findById(req.user._id);
@@ -212,6 +247,14 @@ router.post('/:id/partial-sell', auth, validateOwnership, async (req, res) => {
 
     // Calculate sell value using current price
     const sellValue = quantity * currentStock.currentPrice;
+
+    // Add sell transaction
+    stock.transactions.push({
+      type: 'sell',
+      quantity,
+      price: currentStock.currentPrice,
+      timestamp: new Date()
+    });
 
     // Update user's balance
     const user = await User.findById(req.user._id);

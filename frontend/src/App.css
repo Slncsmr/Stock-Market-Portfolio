@@ -962,3 +962,18 @@ button:hover {
     min-width: 800px;
   }
 }
+
+/* Price Chart Styles */
+.price-chart {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(26, 35, 126, 0.15);
+  margin-bottom: 2rem;
+  border: 1px solid rgba(26, 35, 126, 0.1);
+}
+
+.price-chart canvas {
+  max-height: 400px;
+  width: 100% !important;
+}
